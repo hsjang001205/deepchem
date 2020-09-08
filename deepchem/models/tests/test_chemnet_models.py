@@ -38,7 +38,7 @@ class TestChemnetModel(unittest.TestCase):
       featurizer = SmilesToImage(img_size=img_size, img_spec=img_spec, res=res)
 
     loader = dc.data.CSVLoader(
-        tasks=chembl25_tasks, smiles_field='smiles', featurizer=featurizer)
+        tasks=chembl25_tasks, feature_field='smiles', featurizer=featurizer)
     dataset = loader.featurize(
         input_files=[dataset_file],
         shard_size=10000,
