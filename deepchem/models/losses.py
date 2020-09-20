@@ -218,7 +218,7 @@ class VAE_ELBO(Loss):
     output, labels = _make_tf_shapes_consistent(x, reconstruction_x)
     output, labels = _ensure_float(x, reconstruction_x)
     BCE = tf.keras.losses.binary_crossentropy(x, reconstruction_x)
-    KLD = VAE_KLDivergency()._compute_tf_loss(logvar, mu)
+    KLD = VAE_KLDivergence()._compute_tf_loss(logvar, mu)
     return BCE + kl_scale*KLD
 
   def _create_pytorch_loss(self):
@@ -228,14 +228,14 @@ class VAE_ELBO(Loss):
     def loss(logvar, mu, x, reconstruction_x, kl_scale = 1):
       output, labels = _make_pytorch_shapes_consistent(x, reconstruction_x)
       BCE = torch.mean(bce(x, reconstruction_x), dim=-1)
-      KLD = (VAE_KLDivergency()._create_pytorch_loss())(logvar, mu)
+      KLD = (VAE_KLDivergence()._create_pytorch_loss())(logvar, mu)
       return BCE + kl_scale*KLD
     
     return loss
 
 
-class VAE_KLDivergency(Loss):
-  """The KL_divergency between hidden distribution and normal distribution
+class VAE_KLDivergence(Loss):
+  """The KL_divergence between hidden distribution and normal distribution
 
   The logvar should have shape (batch_size, hidden_space) and each term represents
   standard deviation of hidden distribution. The mean shuold have 
@@ -258,8 +258,8 @@ class VAE_KLDivergency(Loss):
     return loss
 
 
-class KLDivergency(Loss):
-  """The KL_divergency between two distribution. D_KL(P||Q)
+class KLDivergence(Loss):
+  """The KL_divergence between two distribution. D_KL(P||Q)
 
   The argument should have shape (batch_size, num of variable) and represents
   probabilites distribution. 
