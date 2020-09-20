@@ -258,11 +258,10 @@ class VAE_KLDivergency(Loss):
 
 
 class KLDivergency(Loss):
-  """The KL_divergency between two distribution.
+  """The KL_divergency between two distribution. D_KL(P||Q)
 
-  The logvar should have shape (batch_size, num of variable) and represents
-  standard deviation of hidden distribution. The mean shuold have 
-  (batch_size, hidden_space) and represents mean of hidden distribtuon.
+  The argument should have shape (batch_size, num of variable) and represents
+  probabilites distribution. 
   """
 
   def _compute_tf_loss(self, P, Q):
