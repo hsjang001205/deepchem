@@ -205,6 +205,72 @@ class SparseSoftmaxCrossEntropy(Loss):
     return loss
 
 
+class VAE_ELBO(Loss):
+  """
+  input: logvar, mu, x, reconstruction_x
+  """
+  
+  def _compute_tf_loss(self, logvar, mu, x, reconstruction_x, kl_scale = 1):
+    import tensorflow as tf
+    output, labels = _make_tf_shapes_consistent(x, reconstruction_x)
+    output, labels = _ensure_float(x, reconstruction_x)
+    BCE = tf.reduce_mean(tf.keras.losses.binary_crossentropy(x, reconstruction_x),1)
+    KLD = VAE_KlDivergency._compute_tf_loss(logvar, mu)
+    return BCE + kl_scale*KLD
+
+  def _create_pytorch_loss(self):
+    import torch
+    bce = torch.nn.BCELoss(reduction='none')
+
+    def loss(logvar, mu, x, reconstruction_x, kl_scale = 1):
+      output, labels = _make_tf_shapes_consistent(x, reconstruction_x)
+      BCE = torch.mean(bce(x, reconstruction_x), dim=-1)
+      KLD = (VAE_KlDivergency._create_pytorch_loss())(logvar, mu)
+      return BCE + kl_scale*KLD
+    
+    return loss
+
+
+class VAE_KlDivergency(Loss):
+  """The KL_divergency between hidden space and normal distribution
+
+  """
+
+  def _compute_tf_loss(self, logvar, mu):
+    import tensorflow as tf
+    output, labels = _make_tf_shapes_consistent(logvar, mu)
+    output, labels = _ensure_float(logvar, mu)
+    return 0.5 * tf.reduce_mean(tf.square(mu) + tf.square(logvar) - tf.math.log(1e-20 + tf.square(logvar)) - 1,-1)
+
+  def _create_pytorch_loss(self):
+    import torch
+    def loss(logvar, mu):
+      output, labels = _make_tf_shapes_consistent(logvar, mu)
+      output, labels = _ensure_float(logvar, mu)
+      return 0.5 * torch.mean(torch.square(mu) + torch.square(logvar) - torch.log(1e-20 + torch.square(logvar)) - 1,-1)
+
+    return loss
+
+
+class ShannonEntropy(Loss):
+  """The KL_divergency between hidden space and normal distribution
+
+  """
+
+  def _compute_tf_loss(self, logvar, mu):
+    import tensorflow as tf
+
+    return 0.5 * tf.reduce_mean(tf.square(mu) + tf.square(logvar) - tf.math.log(1e-20 + tf.square(logvar)) - 1,-1)
+
+  def _create_pytorch_loss(self):
+    import torch
+    def loss(logvar, mu):
+
+      return 0.5 * torch.mean(torch.square(mu) + torch.square(logvar) - torch.log(1e-20 + torch.square(logvar)) - 1,-1)
+
+    return loss
+
+
 def _make_tf_shapes_consistent(output, labels):
   """Try to make inputs have the same shape by adding dimensions of size 1."""
   import tensorflow as tf
@@ -261,3 +327,7 @@ def _ensure_float(output, labels):
   if labels.dtype not in (tf.float32, tf.float64):
     labels = tf.cast(labels, tf.float32)
   return (output, labels)
+
+
+
+
