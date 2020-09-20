@@ -210,13 +210,14 @@ class VAE_ELBO(Loss):
   
   The logvar and mu should have shape (batch_size, hidden_space).
   The x and reconstruction_x should have (batch_size, attribute).
+  kl_scale: KLD regularized weights.
   """
   
   def _compute_tf_loss(self, logvar, mu, x, reconstruction_x, kl_scale = 1):
     import tensorflow as tf
     output, labels = _make_tf_shapes_consistent(x, reconstruction_x)
     output, labels = _ensure_float(x, reconstruction_x)
-    BCE = tf.reduce_mean(tf.keras.losses.binary_crossentropy(x, reconstruction_x),-1)
+    BCE = tf.keras.losses.binary_crossentropy(x, reconstruction_x)
     KLD = VAE_KLDivergency()._compute_tf_loss(logvar, mu)
     return BCE + kl_scale*KLD
 
